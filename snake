@@ -26,37 +26,37 @@ class Program
 
         Random randomnummer = new Random();
 
-        pixel hoofd = new pixel();
+        Pixel head = new Pixel();
 
-        hoofd.xpos = screenwidth / 2;
+        head.xPos = screenwidth / 2;
 
-        hoofd.ypos = screenheight / 2;
+        head.yPos = screenheight / 2;
 
-        hoofd.schermkleur = ConsoleColor.Red;
+        head.direction = "RIGHT";
 
-        string movement = "RIGHT";
+        head.schermKleur = ConsoleColor.Red;
 
-        List<int> telje = new List<int>();
+        List<Pixel> tailParts = new List<Pixel>();
 
         int score = 0;
 
-        Pixel hoofd = new Pixel();
+        head.xPos = screenwidth / 2;
 
-        hoofd.xPos = screenwidth / 2;
+        head.yPos = screenheight / 2;
 
-        hoofd.yPos = screenheight / 2;
+        head.schermKleur = ConsoleColor.Red;
 
-        hoofd.schermKleur = ConsoleColor.Red;
-
-
-
-        List<int> teljePositie = new List<int>();
+        string scoreString = "Score: " + score + " ";
 
 
 
-        teljePositie.Add(hoofd.xPos);
+        List<int> tailPositions = new List<int>();
 
-        teljePositie.Add(hoofd.yPos);
+
+
+        tailPositions.Add(head.xPos);
+
+        tailPositions.Add(head.yPos);
 
 
 
@@ -86,7 +86,7 @@ class Program
 
             Console.ForegroundColor = ConsoleColor.Green;
 
-            Console.SetCursorPosition(hoofd.xPos, hoofd.yPos);
+            Console.SetCursorPosition(head.xPos, head.yPos);
 
             Console.Write("■");
 
@@ -95,11 +95,9 @@ class Program
             Console.ForegroundColor = ConsoleColor.White;
 
             for (int i = 0; i < screenwidth; i++)
-
             {
-
                 Console.SetCursorPosition(i, 0);
-
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.Write("■");
 
             }
@@ -134,43 +132,23 @@ class Program
 
             }
 
-            Console.ForegroundColor =  /* ?? */;
-
-            Console.WriteLine("Score: " + score);
-
-            Console.ForegroundColor = ConsoleColor.White;
-
-            Console.Write("H");
-
-            for (int i = 0; i < telje.Count(); i++)
-
+            for (int i = 0; i < scoreString.Length; i++)
             {
-
-                Console.SetCursorPosition(telje[i], telje[i + 1]);
-
-                Console.Write("■");
-
+                Console.SetCursorPosition(i, 0);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(scoreString[i]);
             }
 
             //Draw Snake
 
-            Console.SetCursorPosition(hoofd.xPos, hoofd.yPos);
+            foreach (Pixel tailPart in tailParts)
+            {
+                Console.SetCursorPosition(tailPart.xPos, tailPart.yPos);
 
-            Console.Write("■");
-
-            Console.SetCursorPosition(hoofd.xPos, hoofd.yPos);
-
-            Console.Write("■");
-
-            Console.SetCursorPosition(hoofd.xPos, hoofd.yPos);
-
-            Console.Write("■");
-
-            Console.SetCursorPosition(hoofd.xPos, hoofd.yPos);
-
-            Console.Write("■");
-
-
+                Console.ForegroundColor = ConsoleColor.White;
+                if (tailPart.xPos == obstacleXpos && tailPart.yPos == obstacleYpos) Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("■");
+            }
 
             ConsoleKeyInfo info = Console.ReadKey();
 
@@ -182,98 +160,89 @@ class Program
 
                 case ConsoleKey.UpArrow:
 
-                    movement = "UP";
+                    head.direction = "UP";
 
                     break;
 
                 case ConsoleKey.DownArrow:
 
-                    movement = "DOWN";
+                    head.direction = "DOWN";
 
-                    // ???
+                    break;
 
                 case ConsoleKey.LeftArrow:
 
-                    movement = "LEFT";
+                    head.direction = "LEFT";
 
                     break;
 
                 case ConsoleKey.RightArrow:
 
-                    movement = "RIGHT";
+                    head.direction = "RIGHT";
 
                     break;
 
             }
 
-            if (movement == "UP")
+            Pixel newPart = new Pixel();
 
-                hoofd.yPos--;
+            newPart.xPos = head.xPos;
+            newPart.yPos = head.yPos;
 
-            if (movement == "DOWN")
+            tailParts.Insert(0, newPart);
 
-                hoofd.yPos++;
+            if (head.direction == "UP")
 
-            if (movement == "LEFT")
+                head.yPos--;
 
-                hoofd.xPos--;
+            if (head.direction == "DOWN")
 
-            if (movement == "RIGHT")
+                head.yPos++;
 
-                hoofd.xPos++;
+            if (head.direction == "LEFT")
+
+                head.xPos--;
+
+            if (head.direction == "RIGHT")
+
+                head.xPos++;
 
             //Hindernis treffen
 
-            if (hoofd.xPos == obstacleXpos /* ?? */ == obstacleYpos)
+            if (head.xPos == obstacleXpos && head.yPos == obstacleYpos)
 
             {
 
                 score++;
 
-                obstacleXpos = randomnummer.Next(1, screenwidth);
+                obstacleXpos = randomnummer.Next(1, screenwidth - 1);
 
-                obstacleYpos = randomnummer.Next(1, screenheight);
+                obstacleYpos = randomnummer.Next(1, screenheight - 1);
+
+                scoreString = "Score: " + score + " ";
 
             }
 
-            teljePositie.Insert(0, hoofd.xPos);
+            if(score < tailParts.Count)
+            {
+                tailParts.RemoveAt(tailParts.Count - 1);
+            }
 
-            teljePositie.Insert(1, hoofd.yPos);
+            tailPositions.Insert(0, head.xPos);
 
-            teljePositie.RemoveAt(teljePositie.Count - 1);
+            tailPositions.Insert(1, head.yPos);
 
-            teljePositie.RemoveAt(teljePositie.Count - 1);
+            tailPositions.RemoveAt(tailPositions.Count - 1);
+
+            tailPositions.RemoveAt(tailPositions.Count - 1);
 
             //Kollision mit Wände oder mit sich selbst
 
-            if (hoofd.xPos == 0 || hoofd.xPos == screenwidth - 1 || hoofd.yPos == 0 || hoofd.yPos == screenheight - 1)
+            if (head.xPos == 0 || head.xPos == screenwidth - 1 || head.yPos == 0 || head.yPos == screenheight - 1)
 
             {
 
-                Console.Clear();
-
-                Console.ForegroundColor = ConsoleColor.Red;
-
-                Console.SetCursorPosition(screenwidth / 5, screenheight / 2);
-
-                Console.WriteLine("Game Over");
-
-                Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 1);
-
-                Console.WriteLine("Dein Score ist: " + score);
-
-                Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 2);
-
-                Environment.Exit(0);
-
-            }
-
-            for (int i = 0; i < telje.Count(); i += 2)
-
-            {
-
-                if (hoofd.xPos == telje[i] && hoofd.yPos == telje[i + 1])
-
+                while (true)
                 {
 
                     Console.Clear();
@@ -282,21 +251,67 @@ class Program
 
                     Console.SetCursorPosition(screenwidth / 5, screenheight / 2);
 
-                   //???
+                    Console.WriteLine("Game Over");
 
                     Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 1);
 
-                    Console.WriteLine("Dein Score ist: " + score);
+                    Console.WriteLine("Your score is: " + score);
 
                     Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 2);
 
-                    Environment.Exit(0);
+                    Console.WriteLine("Press ENTER to leave");
+
+                    ConsoleKeyInfo pressedKey = Console.ReadKey();
+
+                    if (pressedKey.Key == ConsoleKey.Enter)
+                    {
+                        Environment.Exit(0);
+                    }
 
                 }
 
             }
 
-            Thread.Sleep(50);
+            foreach(Pixel tailPart in tailParts)
+            {
+
+                if (head.xPos == tailPart.xPos && head.yPos == tailPart.yPos)
+
+                {
+
+                    while(true)
+                    {
+
+                        Console.Clear();
+
+                        Console.ForegroundColor = ConsoleColor.Red;
+
+                        Console.SetCursorPosition(screenwidth / 5, screenheight / 2);
+
+                        Console.WriteLine("Game Over");
+
+                        Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 1);
+
+                        Console.WriteLine("Your score is: " + score);
+
+                        Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 2);
+
+                        Console.WriteLine("Press ENTER to leave");
+
+                        ConsoleKeyInfo pressedKey = Console.ReadKey();
+
+                        if(pressedKey.Key == ConsoleKey.Enter)
+                        {
+                            Environment.Exit(0);
+                        }
+
+                    }
+
+                }
+
+            }
+
+            //Thread.Sleep(50);
 
         }
 
@@ -307,12 +322,13 @@ class Program
 
 
 public class Pixel
-
 {
 
     public int xPos { get; set; }
 
     public int yPos { get; set; }
+
+    public string direction { get; set; }
 
     public ConsoleColor schermKleur { get; set; }
 
@@ -327,6 +343,7 @@ public class Obstakel
 {
 
     public int Xpos { get; set; }
+    public int Ypos { get; set; }
 
     // ?
 
