@@ -1,5 +1,11 @@
 using System;
 
+using System.Collections.Generic;
+
+using System.Linq;
+
+using System.Threading;
+
 
 
 class Program
@@ -10,360 +16,339 @@ class Program
 
     {
 
-        int width = 10;
+        Console.WindowHeight = 16;
 
-        int height = 10;
+        Console.WindowWidth = 32;
 
-        int bombCount = 15;
+        int screenwidth = Console.WindowWidth;
+
+        int screenheight = Console.WindowHeight;
+
+        Random randomnummer = new Random();
+
+        Pixel head = new Pixel();
+
+        head.xPos = screenwidth / 2;
+
+        head.yPos = screenheight / 2;
+
+        head.direction = "RIGHT";
+
+        head.schermKleur = ConsoleColor.Red;
+
+        List<Pixel> tailParts = new List<Pixel>();
+
+        int score = 0;
+
+        head.xPos = screenwidth / 2;
+
+        head.yPos = screenheight / 2;
+
+        head.schermKleur = ConsoleColor.Red;
+
+        string scoreString = "Score: " + score + " ";
 
 
 
-        char[,] board = InitializeBoard(width, height, bombCount);
-
-        char[,] displayBoard = InitializeDisplayBoard(width, height);
+        List<int> tailPositions = new List<int>();
 
 
 
-        bool gameOver = false;
+        tailPositions.Add(head.xPos);
+
+        tailPositions.Add(head.yPos);
 
 
 
-        while (!gameOver)
+        DateTime tijd = DateTime.Now;
+
+        string obstacle = "*";
+
+        int obstacleXpos = randomnummer.Next(1, screenwidth);
+
+        int obstacleYpos = randomnummer.Next(1, screenheight);
+
+        while (true)
 
         {
 
-            DisplayBoard(displayBoard);
+            Console.Clear();
+
+            //Draw Obstacle
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+
+            Console.SetCursorPosition(obstacleXpos, obstacleYpos);
+
+            Console.Write(obstacle);
 
 
 
-            Console.WriteLine("Podaj współrzędne (x, y) do odkrycia (np. 2 3): ");
+            Console.ForegroundColor = ConsoleColor.Green;
 
-            string[] input = Console.ReadLine().Split(' ');
+            Console.SetCursorPosition(head.xPos, head.yPos);
+
+            Console.Write("■");
 
 
 
-            if (input.Length == 2 && int.TryParse(input[0], out int x) && int.TryParse(input[1], out int y))
+            Console.ForegroundColor = ConsoleColor.White;
+
+            for (int i = 0; i < screenwidth; i++)
+            {
+                Console.SetCursorPosition(i, 0);
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("■");
+
+            }
+
+            for (int i = 0; i < screenwidth; i++)
 
             {
 
-                if (x >= 0 && x < width && y >= 0 && y < height && displayBoard[y, x] == ' ')
+                Console.SetCursorPosition(i, screenheight - 1);
+
+                Console.Write("■");
+
+            }
+
+            for (int i = 0; i < screenheight; i++)
+
+            {
+
+                Console.SetCursorPosition(0, i);
+
+                Console.Write("■");
+
+            }
+
+            for (int i = 0; i < screenheight; i++)
+
+            {
+
+                Console.SetCursorPosition(screenwidth - 1, i);
+
+                Console.Write("■");
+
+            }
+
+            for (int i = 0; i < scoreString.Length; i++)
+            {
+                Console.SetCursorPosition(i, 0);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(scoreString[i]);
+            }
+
+            //Draw Snake
+
+            foreach (Pixel tailPart in tailParts)
+            {
+                Console.SetCursorPosition(tailPart.xPos, tailPart.yPos);
+
+                Console.ForegroundColor = ConsoleColor.White;
+                if (tailPart.xPos == obstacleXpos && tailPart.yPos == obstacleYpos) Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("■");
+            }
+
+            ConsoleKeyInfo info = Console.ReadKey();
+
+            //Game Logic
+
+            switch (info.Key)
+
+            {
+
+                case ConsoleKey.UpArrow:
+
+                    head.direction = "UP";
+
+                    break;
+
+                case ConsoleKey.DownArrow:
+
+                    head.direction = "DOWN";
+
+                    break;
+
+                case ConsoleKey.LeftArrow:
+
+                    head.direction = "LEFT";
+
+                    break;
+
+                case ConsoleKey.RightArrow:
+
+                    head.direction = "RIGHT";
+
+                    break;
+
+            }
+
+            Pixel newPart = new Pixel();
+
+            newPart.xPos = head.xPos;
+            newPart.yPos = head.yPos;
+
+            tailParts.Insert(0, newPart);
+
+            if (head.direction == "UP")
+
+                head.yPos--;
+
+            if (head.direction == "DOWN")
+
+                head.yPos++;
+
+            if (head.direction == "LEFT")
+
+                head.xPos--;
+
+            if (head.direction == "RIGHT")
+
+                head.xPos++;
+
+            //Hindernis treffen
+
+            if (head.xPos == obstacleXpos && head.yPos == obstacleYpos)
+
+            {
+
+                score++;
+
+                obstacleXpos = randomnummer.Next(1, screenwidth - 1);
+
+                obstacleYpos = randomnummer.Next(1, screenheight - 1);
+
+                scoreString = "Score: " + score + " ";
+
+            }
+
+            if(score < tailParts.Count)
+            {
+                tailParts.RemoveAt(tailParts.Count - 1);
+            }
+
+            tailPositions.Insert(0, head.xPos);
+
+            tailPositions.Insert(1, head.yPos);
+
+            tailPositions.RemoveAt(tailPositions.Count - 1);
+
+            tailPositions.RemoveAt(tailPositions.Count - 1);
+
+            //Kollision mit Wände oder mit sich selbst
+
+            if (head.xPos == 0 || head.xPos == screenwidth - 1 || head.yPos == 0 || head.yPos == screenheight - 1)
+
+            {
+
+                while (true)
+                {
+
+                    Console.Clear();
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    Console.SetCursorPosition(screenwidth / 5, screenheight / 2);
+
+                    Console.WriteLine("Game Over");
+
+                    Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 1);
+
+                    Console.WriteLine("Your score is: " + score);
+
+                    Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 2);
+
+                    Console.WriteLine("Press ENTER to leave");
+
+                    ConsoleKeyInfo pressedKey = Console.ReadKey();
+
+                    if (pressedKey.Key == ConsoleKey.Enter)
+                    {
+                        Environment.Exit(0);
+                    }
+
+                }
+
+            }
+
+            foreach(Pixel tailPart in tailParts)
+            {
+
+                if (head.xPos == tailPart.xPos && head.yPos == tailPart.yPos)
 
                 {
 
-                    if (board[y, x] == '*')
-
+                    while(true)
                     {
 
-                        Console.WriteLine("Boom! Koniec gry.");
+                        Console.Clear();
 
-                        gameOver = true;
+                        Console.ForegroundColor = ConsoleColor.Red;
 
-                    }
+                        Console.SetCursorPosition(screenwidth / 5, screenheight / 2);
 
-                    else
+                        Console.WriteLine("Game Over");
 
-                    {
+                        Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 1);
 
-                        int count = CountAdjacentBombs(board, x, y);
+                        Console.WriteLine("Your score is: " + score);
 
-                        displayBoard[y, x] = count.ToString()[0];
+                        Console.SetCursorPosition(screenwidth / 5, screenheight / 2 + 2);
 
+                        Console.WriteLine("Press ENTER to leave");
 
+                        ConsoleKeyInfo pressedKey = Console.ReadKey();
 
-                        if (count /*??*/ 0)
-
+                        if(pressedKey.Key == ConsoleKey.Enter)
                         {
-
-                            // Odkryj sąsiadujące puste pola.
-
-                            ExpandZeros(board, displayBoard, x, y);
-
+                            Environment.Exit(0);
                         }
 
-
-
-                        if (CheckWin(displayBoard, bombCount))
-
-                        {
-
-                            Console.WriteLine("Gratulacje! Wygrałeś!");
-
-                            gameOver = true;
-
-                        }
-
-                    }
-
-                }
-
-                else
-
-                {
-
-                    Console.WriteLine("Nieprawidłowe współrzędne. Spróbuj ponownie.");
-
-                }
-
-            }
-
-            else
-
-            {
-
-                Console.WriteLine("Nieprawidłowe dane wejściowe. Spróbuj ponownie.");
-
-            }
-
-        }
-
-    }
-
-
-
-    static char[,] InitializeBoard(int width, int height, int bombCount)
-
-    {
-
-        char[,] board = new char[height, width];
-
-        Random random = /*??*/
-
-
-
-        // Wypełnij planszę bombami.
-
-        for (int i = 0; i < bombCount; i++)
-
-        {
-
-            int x, y;
-
-            do
-
-            {
-
-                x = random.Next(0, width);
-
-                y = random.Next(0, height);
-
-            } while (board[y, x] == '*');
-
-
-
-            board[y, x] = '*';
-
-        }
-
-
-
-        return board;
-
-    }
-
-
-
-    static char[,] InitializeDisplayBoard(int width, int height)
-
-    {
-
-        char[,] displayBoard = new char[height, width];
-
-
-
-        // Wypełnij planszę niewidocznymi polami.
-
-        for (int i = 0; i < height; i++)
-
-        {
-
-            for (int j = 0; j < width; j++)
-
-            {
-
-                displayBoard[i, j] = ' ';
-
-            }
-
-        }
-
-
-
-        /*??*/ displayBoard;
-
-    }
-
-
-
-    static void DisplayBoard(char[,] board)
-
-    {
-
-        Console.Clear();
-
-        int height = board.GetLength(0);
-
-        int width = board.GetLength(1);
-
-
-
-        Console.WriteLine("Plansza Saper:");
-
-        Console.Write("  ");
-
-        for (int i = 0; i < width; i++)
-
-        {
-
-            Console.Write($"{i} ");
-
-        }
-
-        Console.WriteLine();
-
-
-
-        for (int i = 0; i < height; i++)
-
-        {
-
-            Console.Write($"{i} ");
-
-            for (int j = 0; j < width; j++)
-
-            {
-
-                Console.Write($"{board[i, j]} ");
-
-            }
-
-            Console.WriteLine();
-
-        }
-
-    }
-
-
-
-    static int CountAdjacentBombs(char[,] board, int x, int y)
-
-    {
-
-        int count = 0;
-
-        int height = board.GetLength(0);
-
-        int width = board.GetLength(1);
-
-
-
-        for (int i = Math.Max(0, y - 1); i <= Math.Min(height - 1, y + 1); i++)
-
-        {
-
-            for (int j = Math.Max(0, x - 1); j <= /*??*/(width - 1, x + 1); j++)
-
-            {
-
-                if (board[i, j] == '*')
-
-                {
-
-                    count++;
-
-                }
-
-            }
-
-        }
-
-
-
-        return count;
-
-    }
-
-
-
-    static void ExpandZeros(char[,] board, char[,] displayBoard, int x, int y)
-
-    {
-
-        int height = board.GetLength(0);
-
-        int width = board.GetLength(1);
-
-
-
-        for (int i = Math.Max(0, y - 1); i <= Math.Min(height - 1, y + 1); i++)
-
-        {
-
-            for (int j = Math.Max(0, x - 1); j <= Math.Min(width - 1, x + 1); j++)
-
-            {
-
-                if (displayBoard[i, j] == ' ' && board[i, j] != '*')
-
-                {
-
-                    displayBoard[i, j] = CountAdjacentBombs(board, j, i).ToString()[0];
-
-
-
-                    if (displayBoard[i, j] == '0')
-
-                    {
-
-                        ExpandZeros(board, displayBoard, j, i);
-
                     }
 
                 }
 
             }
 
+            //Thread.Sleep(50);
+
         }
 
     }
 
-
-
-    static bool CheckWin(char[,] displayBoard, int bombCount)
-
-    {
-
-        int uncoveredCount = 0;
-
-        int width = displayBoard.GetLength(1);
-
-        int height = displayBoard.GetLength(0);
+}
 
 
 
-        for (int i = 0; i < height; i++)
+public class Pixel
+{
 
-        {
+    public int xPos { get; set; }
 
-            for (int j = 0; j < width; j++)
+    public int yPos { get; set; }
 
-            {
+    public string direction { get; set; }
 
-                if (displayBoard[i, j] != ' ' && displayBoard[i, j] != '*')
+    public ConsoleColor schermKleur { get; set; }
 
-                {
+    public string karacter { get; set; }
 
-                    uncoveredCount++;
-
-                }
-
-            }
-
-        }
+}
 
 
 
-        return uncoveredCount == /* ??*/ * height - bombCount;
+public class Obstakel
 
-    }
+{
+
+    public int Xpos { get; set; }
+    public int Ypos { get; set; }
+
+    // ?
+
+    public ConsoleColor schermKleur { get; set; }
+
+    public string karacter { get; set; }
 
 }
